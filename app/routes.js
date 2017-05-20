@@ -37,9 +37,8 @@ module.exports = function(app, passport, docker) {
     container.inspect(req.params.id,function(err,requ){
       if (err) throw err;
       var reqname = requ.Config.Image;
-      var name = reqname.replace('app/','').replace('postgresql/','').replace('mysql/','');
       container.attach({stream: true, stdout: true, stderr:false, tty:false}, function(err,stream) {
-	res.render('containers/show.ejs',{container: requ, name: name, stream: stream});
+	res.render('containers/show.ejs',{container: requ, name: reqname, stream: stream});
       });
     });
   });
