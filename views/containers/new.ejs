@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>HarborJS</title>
     <link href="../css/bootstrap.css" rel="stylesheet" type="text/css" />
-    <link href="../css/main.css" rel="stylesheet" type="text/css" />  
+    <link href="../css/main.css" rel="stylesheet" type="text/css" />
   </head>
   <body>
     <div class="navbar navbar-inverse navbar-static-top">
@@ -31,17 +31,18 @@
         <div class="col-lg-6 col-lg-offset-2">
           <div class="text-centered">
               <h3>Register App</h3>
+              <div id="msg_app" class="alert" style="display: none"></div>
               <hr>
                 <form action="/create" method="post">
                   <div class="form-group">
                     <label>App Name</label>
-                      <input id="app" type="text" class="form-control" name="name" data-container="body" data-toggle="popover" data-placename="right" data-content="After registering your app, commit your repository, add the server's remote with : git remote add dokku@hostname:appname and then git push your work on that remote."/><br>
+                      <input id="app" type="text" class="form-control" name="name"/><br>
                   </div>
                   <div class="form-group">
                   <label>Username</label>
                   <input type="text" class="form-control" name="user" value="<%= user.local.username%>"/><br>
                   </div>
-                  <button type="submit" class="btn btn-info">Register</button>
+                  <button id="app_submit" type="submit" class="btn btn-info" disabled="true">Register</button>
                 </form>
                 <br>
                 <h3>Create DB</h3>
@@ -75,6 +76,8 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script src="../js/bootstrap.min.js"></script>
         <script>
+          var app_name_field = document.getElementById('app');
+          var app_msg_field = document.getElementById('msg_app');
           var socket = io.connect('/');
 
           function testname(mystr){
@@ -93,6 +96,48 @@
             return true;
           }
 
+          app_name_field.addEventListener("focusout", app_is_valid)
+          function check_app_exists(app_name, callback){
+            $.getJSON('/api/app_name_exists/' + encodeURIComponent(app_name), callback);
+          }
+          function app_is_valid() {
+            var app_name = app_name_field.value;
+            if (app_msg_field.style.display  == 'block') {
+              app_msg_field.setAttribute('style', 'display: none');
+              app_msg_field.classList.remove("alert-danger", "alert-info");
+            }
+
+            if(!app_name){
+              document.getElementById('app_submit').disabled = true;
+            }
+            else if( ! testname(app_name)){
+              app_msg_field.setAttribute('style', 'display: block');
+              app_msg_field.classList.add("alert-danger");
+              app_msg_field.innerHTML = 'The application name should be alphanumeric !';
+              document.getElementById('app_submit').disabled = true;
+            }
+            else {
+              //console.log("Le nom est valide. Voyons si une application de ce nom existe dÃ©jÃ ...")
+              check_app_exists(app_name, function(app_exists){
+                if(app_exists) {
+                  //$('#app').popover('hide');
+                  app_msg_field.setAttribute('style', 'display: block');
+                  app_msg_field.classList.add("alert-danger");
+                  app_msg_field.innerHTML = 'Application "' + app_name + '" already exist !';
+                  //$('#app').popover('show');
+                }
+                else {
+                  app_msg_field.setAttribute('style', 'display: block');
+                  app_msg_field.classList.add("alert-info");
+                  app_msg_field.innerHTML = 'Application "' + app_name + '" seem not exist, you can register it.<br><br>';
+                  app_msg_field.innerHTML += "After registering your app, commit your repository, add the server's remote with : git remote add dokku@hostname:appname and then git push your work on that remote.";
+
+                }
+                document.getElementById('app_submit').disabled = app_exists;
+              });
+            }
+          }
+
           function dbCreate(){
             var dbName = document.getElementById('dbname').value;
             var dbType = document.getElementById('dbtype').value;
@@ -107,3 +152,4 @@
         </script>
     </body>
 </html>
+

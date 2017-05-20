@@ -55,6 +55,15 @@ module.exports = function(app, passport, docker) {
    res.render('containers/new.ejs' ,{user : req.user});
   });
 
+  app.get('/api/app_name_exists/:name', isLoggedIn, function(req, res){
+    var app_exists;
+    var app_name = 'dokku/'+decodeURIComponent(req.params.name)+':latest';
+    App.findOne({name: app_name}, function(err, app){
+      app_exists = (app) ? true : false;
+      res.json(app_exists);
+    })
+  });
+
   app.post('/create', config.create);
 
   app.post('/createdb', config.createdb);
