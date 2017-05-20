@@ -38,10 +38,12 @@
                     <label>App Name</label>
                       <input id="app" type="text" class="form-control" name="name"/><br>
                   </div>
-                  <div class="form-group">
-                  <label>Username</label>
-                  <input type="text" class="form-control" name="user" value="<%= user.local.username%>"/><br>
-                  </div>
+                  <% if(user.local.username == "admin"){%>
+                    <div class="form-group">
+                      <label>Username</label>
+                      <input type="text" class="form-control" name="user" value="<%= user.local.username%>"/><br>
+                    </div>
+                  <%}%>
                   <button id="app_submit" type="submit" class="btn btn-info" disabled="true">Register</button>
                 </form>
                 <br>
@@ -60,10 +62,12 @@
                       <option value="redis">Redis</option>
                     </select>
                   </div>
-                  <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" class="form-control" name="user" value="<%= user.local.username%>"/><br>
-                  </div>
+                  <% if(user.local.username == "admin"){%>
+                    <div class="form-group">
+                      <label>Username</label>
+                      <input type="text" class="form-control" name="user" value="<%= user.local.username%>"/><br>
+                    </div>
+                  <%}%>
                   <div class="form-group">
                     <input id="createdb" class="btn btn-info" type="submit" value="Create DB" onclick="dbCreate()"><br>
                   </div>
