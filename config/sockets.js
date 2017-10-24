@@ -1,53 +1,44 @@
-var exec     = require('ssh-exec');
-var Writable = require('stream').Writable;
-//socket functions
-module.exports = function(io, credentials, docker){
+const {Writable} = require('stream');
+const exec = require('ssh-exec');
 
-function streamToWebsocket(stream, socket){
-  stream._write = function(chunk, enc, next){
-    socket.emit('logs', {data: chunk.toString()});
-    next();
-  }
+module.exports = (io, credentials, docker) => {
+    const streamToWebsocket = (stream, socket) => {
+        stream._write = (chunk, enc, next) => {
+            socket.emit('logs', {
+                data: chunk.toString()
+            });
+            next();
+        };
+    };
+
+    io.sockets.on('connection', socket => {
+        socket.on('thisContainerId', id => {
+            const container = docker.container.get(id);
+            container.logs({stream: true, stdout: true, stderr: true, logs: true}, stream => {
+                const out = new Writable();
+                const err = new Writable();
+                streamToWebsocket(out, socket);
+                streamToWebsocket(err, socket);
+                container.modem.demuxStream(stream, out, err);
+            });
+        });
+
+        socket.on('sshkey', data => {
+            exec(`touch ssh.pub ; echo ${data.mysshkey} > ssh.pub; cat ~/ssh.pub | sudo sshcommand acl-add dokku ${data.name}`, credentials).pipe(process.stdout);
+        });
+
+        socket.on('containerId', data => {
+            exec(`docker kill ${data.idcont}; sudo rm -r /home/dokku/${data.namecont}`, credentials).pipe(process.stdout);
+        });
+
+        socket.on('dbCreate', ({name, type}) => exec(`dokku ${type}:create ${name}`, credentials).pipe(process.stdout));
+
+        socket.on('cmd', ({cmd, name}) => exec(`dokku run ${name} ${cmd}`, credentials).pipe(process.stdout));
+
+        socket.on('dbLink', data => {
+            const app = data.appName;
+            const db = data.dbName;
+            exec(`dokku postgresql:link ${app} ${db}; dokku mysql:link ${app} ${db}; dokku redis:link ${app} ${db}`, credentials).pipe(process.stdout);
+        });
+    });
 };
-
-io.sockets.on('connection', function(socket){
-socket.on('thisContainerId', function(data){
-  var container = docker.getContainer(data);
-  container.attach({stream: true, stdout: true, stderr:true, logs:true}, function(err,attach){
-    var out = Writable();
-    var err = Writable();
-    streamToWebsocket(out, socket);
-    streamToWebsocket(err, socket);
-    container.modem.demuxStream(attach, out, err);
-  });
-});
-
-  socket.on('sshkey', function(data){
-    exec('touch ssh.pub ; echo '+data.mysshkey+' > ssh.pub; cat ~/ssh.pub | sudo sshcommand acl-add dokku '+ data.name, credentials).pipe(process.stdout);
-  });
-
-  socket.on('containerId', function(data){
-    exec('docker kill '+ data.idcont +'; sudo rm -r /home/dokku/'+ data.namecont, credentials).pipe(process.stdout);
-  });
-
-  socket.on('dbCreate',function(data){
-    var name=data.name;
-    var type=data.type;
-    exec('dokku '+type+':create '+name, credentials).pipe(process.stdout);
-  });
-
-  socket.on('cmd', function(data){
-    var cmd=data.cmd;
-    var name=data.name;
-    exec('dokku run ' + name + ' ' + cmd, credentials).pipe(process.stdout);
-  });
-
-  socket.on('dbLink', function(data){
-    var app=data.appName;
-    var db=data.dbName;
-    exec('dokku postgresql:link '+ app +' '+ db +'; dokku mysql:link '+ app +' '+ db +'; dokku redis:link '+ app +' '+ db, credentials).pipe(process.stdout);
-  });
-});
-
-};
-

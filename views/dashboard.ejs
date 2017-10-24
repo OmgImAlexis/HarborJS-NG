@@ -50,22 +50,22 @@
                   <%for(var i=0; i< containers.length; i++){%>
 		    <% if(user.local.username == "admin"){%>
 			<tbody>
-                          <tr>
-                          <%if(containers[i].Image.split("/")[0] == "dokku"){%>
-                            <td>
-                              <a href="/containers/<%=containers[i].Id%>" id="<%=containers[i].Id%>"><%=containers[i].Image%></a>
-                            </td>
-                            <td>
-                              <%=containers[i].Status%>
-                            </td>
-                            <td>
-                              <form action="/destroy/<%= containers[i].Id %>">
-                                <input type="submit" class="btn btn-danger" value="Delete" name="<%=containers[i].Image%>" id="<%=containers[i].Id%>" onclick="deleteContainer(this)"></input>
-                              </form>
-                              </td>
-                          <%}%>
-                          </tr>
-                        </tbody>
+              <tr>
+              <%if(containers[i].Image.split("/")[0] == "dokku"){%>
+                <td>
+                  <a href="/containers/<%=containers[i].Id%>" id="<%=containers[i].Id%>"><%=containers[i].Image%></a>
+                </td>
+                <td>
+                  <%=containers[i].Status%>
+                </td>
+                <td>
+                  <form action="/destroy/<%= containers[i].Id %>">
+                    <input type="submit" class="btn btn-danger" value="Delete" name="<%=containers[i].Image%>" id="<%=containers[i].Id%>" onclick="deleteContainer(this)"></input>
+                  </form>
+                  </td>
+              <%}%>
+              </tr>
+            </tbody>
 		    <%}%>
                     <% apps.forEach(function(app){%>
                       <tbody>
@@ -108,7 +108,7 @@
                               <tr>
                                 <%if(containers[i].Image.split("/")[0] != "dokku"){%>
                                   <td>
-                                    <a href="/containers/<%=containers[i].Id%>" id="<%=containers[i].Id%>"><%=containers[i].Names[0].split('dokku.')[1].replace('.','/').concat(":latest")%></a>
+                                    <a href="/containers/<%=containers[i].Id%>" id="<%=containers[i].Id%>"><%= containers[i].Names[0].includes('dokku') ? containers[i].Names[0].split('dokku.')[1].replace('.','/').concat(":latest") : containers[i].Names[0]%></a>
                                   </td>
                                   <td>
                                     <%=containers[i].Status%>

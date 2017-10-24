@@ -1,42 +1,37 @@
-// load up the user model
-var App       = require('../app/models/apps');
+const App = require('../app/models/app');
 
-exports.create = function(req, res){
-  var username = req.user.local.username;
-  if(req.user.local.username == "admin") {
-    username = req.body.user;
-  }
-  new App({
-    name : 'dokku/'+req.body.name+':latest',
-    user : username
-  }).save(function(err, app, count){
+exports.create = async (req, res) => {
+    let username = req.user.local.username;
+
+    if (req.user.local.username === 'admin') {
+        username = req.body.user;
+    }
+
+    await new App({
+        name: `dokku/${req.body.name}:latest`,
+        user: username
+    }).save();
+
     res.redirect('/new');
-  });
 };
 
-exports.createdb = function(req,res){
-  var username = req.user.local.username;
-  if(req.user.local.username == "admin") {
-    username = req.body.user;
-  }
-  new App({
-    name : req.body.type + '/'  + req.body.name + ':latest',
-    user : username
-  }).save(function(err, app, count){
+exports.createdb = async (req, res) => {
+    let username = req.user.local.username;
+    if (req.user.local.username === 'admin') {
+        username = req.body.user;
+    }
+    await new App({
+        name: req.body.type + '/' + req.body.name + ':latest',
+        user: username
+    }).save();
+
     res.redirect('/new');
-  });
 };
 
-exports.destroy = function(req, res){
-  App.findById( req.params.id, function(err, app){
-    app.remove(function(err, app){
-      res.redirect('/dashboard');
-    });
-  })
+exports.destroy = async (req, res) => {
+    const app = App.findById(req.params.id).exec();
+
+    await app.remove();
+
+    res.redirect('/dashboard');
 };
-
-/*exports.show = function(req,res){
-  App.find( function(err, apps, count){
-
-};*/
-

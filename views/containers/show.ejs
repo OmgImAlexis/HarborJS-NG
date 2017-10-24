@@ -69,7 +69,7 @@
 	  $("#termlog").scrollTop($("#termlog")[0].scrollHeight);
 	});
       
-      socket.emit('thisContainerId',window.location.pathname.substring(12));    
+      socket.emit('thisContainerId', window.location.pathname.substring(12));    
 
       function teststring(mystr){
           if(mystr.match(/[;|""|'']/)){
